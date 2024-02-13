@@ -21,7 +21,7 @@ async def ping_db() -> Response:
         return Response(status_code=500)
 
 
-@router_status.post("/status/{link}")
+@router_status.get("/{link}")
 async def get_status(
     link: int, full: bool = False, offset: int = 0, max: int = 10
 ) -> int | str:

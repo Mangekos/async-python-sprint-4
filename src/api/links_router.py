@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import Response
+from api.schema import Link
 
 from models.links import Links
 from db.db import (
@@ -34,13 +35,14 @@ async def get_links(request: Request) -> Response:
 
 
 @router_links.post("/add", status_code=201)
-async def add_short_link(request: Request, link: str) -> int:
+async def add_short_link(request: Request, link: Link) -> int:
     """
     Returns the id of the record with the passed link
     """
-    short_link: Links = await find_short_link(link)
-    if short_link is None:
-        short_link: Links = await add_link(link, request.client.host)
+    short_link: Links = await find_short_link(link.full_link)
+    if short_link is None and request.client:
+        short_link: Links = await add_link(link.full_link, request.client.host)
+    short_link: Links = await add_link(link.full_link, link.creator)
     return short_link.id
 
 
@@ -64,5 +66,6 @@ async def get_full_link(short_link, request: Request) -> Response:
         return Response(status_code=404)
     if full_link.remove:
         return Response(status_code=410)
-    await add_crossings(full_link, request.client.host)
-    return Response(content=full_link.full_link, status_code=307)
+    if request.client:
+        await add_crossings(full_link, request.client.host)
+    return Response(content=full_link.full_link, status_code=200)

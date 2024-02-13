@@ -28,13 +28,13 @@ app = FastAPI(
 )
 
 
-@app.on_event("startup")
-async def startup():
-    await create_model()
-
-
 app.include_router(router_links, prefix="/links")
 app.include_router(router_status, prefix="/status")
+
+
+@app.on_event("startup")
+async def startup_event():
+    await create_model()
 
 
 if __name__ == "__main__":
